@@ -43,6 +43,9 @@ export async function convertFetchEventToPHPRequest(event: FetchEvent) {
 						'User-agent': self.navigator.userAgent,
 						'Content-type': contentType,
 					},
+					// Relay credentials mode so the browser-based PHP worker
+					// can manage its own cookie store.
+					credentials: event.request.credentials,
 				},
 			],
 		};

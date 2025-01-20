@@ -9,10 +9,15 @@ import { loadNodeRuntime } from '@php-wasm/node';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { login } from './login';
-import { PHPRequest, PHPRequestHandler } from '@php-wasm/universal';
+import {
+	HttpCookieStore,
+	PHPRequest,
+	PHPRequestHandler,
+} from '@php-wasm/universal';
 
 describe('Blueprint step enableMultisite', () => {
 	let handler: PHPRequestHandler;
+	let cookieStore: HttpCookieStore;
 	async function doBootWordPress(options: { absoluteUrl: string }) {
 		handler = await bootWordPress({
 			createPhpRuntime: async () =>
@@ -28,16 +33,23 @@ describe('Blueprint step enableMultisite', () => {
 				),
 			},
 		});
+		cookieStore = new HttpCookieStore();
 		const php = await handler.getPrimaryPhp();
 
 		return { php, handler };
 	}
 
-	const requestFollowRedirects = async (request: PHPRequest) => {
+	const requestFollowRedirectsWithCookies = async (request: PHPRequest) => {
 		let response = await handler.request(request);
 		while (response.httpStatusCode === 302) {
+			cookieStore.rememberCookiesFromResponseHeaders(response.headers);
+
+			const cookieHeader = cookieStore.getCookieRequestHeader();
 			response = await handler.request({
 				url: response.headers['location'][0],
+				headers: {
+					...(cookieHeader && { cookie: cookieHeader }),
+				},
 			});
 		}
 		return response;
@@ -81,7 +93,7 @@ describe('Blueprint step enableMultisite', () => {
 			 * the admin bar includes the multisite menu.
 			 */
 			await login(php, {});
-			const response = await requestFollowRedirects({
+			const response = await requestFollowRedirectsWithCookies({
 				url: '/',
 			});
 			expect(response.httpStatusCode).toEqual(200);

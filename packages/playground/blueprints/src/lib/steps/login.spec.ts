@@ -5,7 +5,7 @@ import {
 	getWordPressModule,
 } from '@wp-playground/wordpress-builds';
 import { login } from './login';
-import { PHPRequestHandler } from '@php-wasm/universal';
+import { PHPRequestHandler, HttpCookieStore } from '@php-wasm/universal';
 import { bootWordPress } from '@wp-playground/wordpress';
 import { loadNodeRuntime } from '@php-wasm/node';
 import { defineWpConfigConsts } from './define-wp-config-consts';
@@ -14,6 +14,7 @@ import { joinPaths, phpVar } from '@php-wasm/util';
 describe('Blueprint step login', () => {
 	let php: PHP;
 	let handler: PHPRequestHandler;
+	let cookieStore: HttpCookieStore;
 	beforeEach(async () => {
 		handler = await bootWordPress({
 			createPhpRuntime: async () =>
@@ -23,14 +24,21 @@ describe('Blueprint step login', () => {
 			wordPressZip: await getWordPressModule(),
 			sqliteIntegrationPluginZip: await getSqliteDatabaseModule(),
 		});
+		cookieStore = new HttpCookieStore();
 		php = await handler.getPrimaryPhp();
 	});
 
-	const requestFollowRedirects = async (request: PHPRequest) => {
+	const requestFollowRedirectsWithCookies = async (request: PHPRequest) => {
 		let response = await handler.request(request);
 		while (response.httpStatusCode === 302) {
+			cookieStore.rememberCookiesFromResponseHeaders(response.headers);
+
+			const cookieHeader = cookieStore.getCookieRequestHeader();
 			response = await handler.request({
 				url: response.headers['location'][0],
+				headers: {
+					...(cookieHeader && { cookie: cookieHeader }),
+				},
 			});
 		}
 		return response;
@@ -38,7 +46,7 @@ describe('Blueprint step login', () => {
 
 	it('should log the user in', async () => {
 		await login(php, {});
-		const response = await requestFollowRedirects({
+		const response = await requestFollowRedirectsWithCookies({
 			url: '/',
 		});
 		expect(response.httpStatusCode).toBe(200);
@@ -47,7 +55,7 @@ describe('Blueprint step login', () => {
 
 	it('should log the user into wp-admin', async () => {
 		await login(php, {});
-		const response = await requestFollowRedirects({
+		const response = await requestFollowRedirectsWithCookies({
 			url: '/wp-admin/',
 		});
 		expect(response.httpStatusCode).toBe(200);
@@ -60,7 +68,7 @@ describe('Blueprint step login', () => {
 				PLAYGROUND_FORCE_AUTO_LOGIN_ENABLED: true,
 			},
 		});
-		const response = await requestFollowRedirects({
+		const response = await requestFollowRedirectsWithCookies({
 			url: '/?playground_force_auto_login_as_user=admin',
 		});
 		expect(response.httpStatusCode).toBe(200);
@@ -81,7 +89,7 @@ describe('Blueprint step login', () => {
 				}
 			`
 		);
-		const response = await requestFollowRedirects({
+		const response = await requestFollowRedirectsWithCookies({
 			url: '/nonce-test.php',
 		});
 		expect(response.text).toBe('1');

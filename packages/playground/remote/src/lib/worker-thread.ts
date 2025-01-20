@@ -38,6 +38,8 @@ import transportDummy from './playground-mu-plugin/playground-includes/wp_http_d
 /* @ts-ignore */
 import playgroundWebMuPlugin from './playground-mu-plugin/0-playground.php?raw';
 import {
+	HttpCookieStore,
+	PHPRequest,
 	PHPResponse,
 	PHPWorker,
 	SupportedPHPVersion,
@@ -78,7 +80,15 @@ export type WorkerBootOptions = {
 	corsProxyUrl?: string;
 };
 
-/** @inheritDoc PHPClient */
+export interface PHPRequestWithCredentialsMode extends PHPRequest {
+	/**
+	 * The fetch credentials mode to use for the request.
+	 * Default: 'same-origin'.
+	 */
+	credentials?: RequestCredentials;
+}
+
+/** @inheritDoc PHPWorker */
 export class PlaygroundWorkerEndpoint extends PHPWorker {
 	booted = false;
 
@@ -98,6 +108,16 @@ export class PlaygroundWorkerEndpoint extends PHPWorker {
 	loadedWordPressVersion: string | undefined;
 
 	unmounts: Record<string, () => any> = {};
+
+	/**
+	 * A cookie store to remember cookies between requests.
+	 *
+	 * Web browsers don't permit relaying `Set-Cookie` headers
+	 * via Response objects so the browser can store cookies from
+	 * PHP responses. So we need to remember cookies ourselves.
+	 * Ref: https://fetch.spec.whatwg.org/#forbidden-response-header-name
+	 */
+	#cookieStore: HttpCookieStore = new HttpCookieStore();
 
 	constructor(monitor: EmscriptenDownloadMonitor) {
 		super(undefined, monitor);
@@ -446,6 +466,56 @@ export class PlaygroundWorkerEndpoint extends PHPWorker {
 			setAPIError(e as Error);
 			throw e;
 		}
+	}
+
+	/** @inheritDoc @php-wasm/universal!PHPRequestHandler.request */
+	override async request(
+		request: PHPRequestWithCredentialsMode
+	): Promise<PHPResponse> {
+		const credentialsMode: RequestCredentials =
+			// Default to same-origin.
+			// https://fetch.spec.whatwg.org/#concept-request-credentials-mode
+			request.credentials ?? 'same-origin';
+		const credentialsAllowed =
+			credentialsMode === 'include' || credentialsMode === 'same-origin';
+
+		const incomingHeaders = request.headers ?? {};
+		const headers: Record<string, string> = {};
+		let incomingCookies = '';
+		for (const [name, value] of Object.entries(incomingHeaders)) {
+			if (name.toLowerCase() === 'cookie') {
+				incomingCookies = value;
+			} else {
+				headers[name] = value;
+			}
+		}
+
+		if (credentialsAllowed) {
+			const storedCookies = this.#cookieStore.getCookieRequestHeader();
+			const cookieSegments = [];
+			storedCookies && cookieSegments.push(storedCookies);
+			incomingCookies && cookieSegments.push(incomingCookies);
+			const cookieHeader = cookieSegments.join('; ');
+
+			if (cookieHeader) {
+				headers['cookie'] = cookieHeader;
+			}
+		}
+
+		const phpResponse = await super.request({
+			...request,
+			headers,
+		});
+
+		// Paraphrased from https://fetch.spec.whatwg.org/#http-network-fetch:
+		// > If `includeCredentials` is true, then apply set-cookie headers.
+		if (credentialsAllowed) {
+			this.#cookieStore.rememberCookiesFromResponseHeaders(
+				phpResponse.headers
+			);
+		}
+
+		return phpResponse;
 	}
 
 	// These methods are only here for the time traveling Playground demo.

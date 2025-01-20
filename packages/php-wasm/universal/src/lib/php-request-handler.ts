@@ -15,7 +15,6 @@ import {
 	PHPProcessManager,
 	SpawnedPHP,
 } from './php-process-manager';
-import { HttpCookieStore } from './http-cookie-store';
 import mimeTypes from './mime-types.json';
 
 export type RewriteRule = {
@@ -159,7 +158,6 @@ export class PHPRequestHandler {
 	#HOST: string;
 	#PATHNAME: string;
 	#ABSOLUTE_URL: string;
-	#cookieStore: HttpCookieStore;
 	rewriteRules: RewriteRule[];
 	processManager: PHPProcessManager;
 	getFileNotFoundAction: FileNotFoundGetActionCallback;
@@ -198,7 +196,6 @@ export class PHPRequestHandler {
 				maxPhpInstances: config.maxPhpInstances,
 			});
 		}
-		this.#cookieStore = new HttpCookieStore();
 		this.#DOCROOT = documentRoot;
 
 		const url = new URL(absoluteUrl);
@@ -490,7 +487,6 @@ export class PHPRequestHandler {
 		const headers: Record<string, string> = {
 			host: this.#HOST,
 			...normalizeHeaders(request.headers || {}),
-			cookie: this.#cookieStore.getCookieRequestHeader(),
 		};
 
 		let body = request.body;
@@ -520,9 +516,6 @@ export class PHPRequestHandler {
 				scriptPath,
 				headers,
 			});
-			this.#cookieStore.rememberCookiesFromResponseHeaders(
-				response.headers
-			);
 			return response;
 		} catch (error) {
 			const executionError = error as PHPExecutionFailureError;
