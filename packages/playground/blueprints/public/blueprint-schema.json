@@ -208,6 +208,9 @@
 				},
 				{
 					"$ref": "#/definitions/UrlReference"
+				},
+				{
+					"$ref": "#/definitions/BlueprintAssetReference"
 				}
 			]
 		},
@@ -338,6 +341,22 @@
 				}
 			},
 			"required": ["resource", "url"],
+			"additionalProperties": false
+		},
+		"BlueprintAssetReference": {
+			"type": "object",
+			"properties": {
+				"resource": {
+					"type": "string",
+					"const": "blueprint-asset",
+					"description": "Identifies the file resource as a Blueprint Asset"
+				},
+				"path": {
+					"type": "string",
+					"description": "The path to the file in the Blueprint package"
+				}
+			},
+			"required": ["resource", "path"],
 			"additionalProperties": false
 		},
 		"StepDefinition": {
@@ -1298,6 +1317,12 @@
 				},
 				{
 					"$ref": "#/definitions/DirectoryLiteralReference"
+				},
+				{
+					"$ref": "#/definitions/VFSDirectoryReference"
+				},
+				{
+					"$ref": "#/definitions/BlueprintAssetDirectoryReference"
 				}
 			]
 		},
@@ -1327,7 +1352,6 @@
 		},
 		"DirectoryLiteralReference": {
 			"type": "object",
-			"additionalProperties": false,
 			"properties": {
 				"resource": {
 					"type": "string",
@@ -1341,21 +1365,94 @@
 					"type": "string"
 				}
 			},
-			"required": ["files", "name", "resource"]
+			"required": ["resource", "files", "name"],
+			"additionalProperties": false
 		},
 		"FileTree": {
 			"type": "object",
 			"additionalProperties": {
-				"anyOf": [
-					{
-						"$ref": "#/definitions/FileTree"
-					},
-					{
-						"type": ["object", "string"]
-					}
-				]
+				"$ref": "#/definitions/FileContent"
 			},
 			"properties": {}
+		},
+		"FileContent": {
+			"anyOf": [
+				{
+					"type": "object",
+					"properties": {
+						"BYTES_PER_ELEMENT": {
+							"type": "number"
+						},
+						"buffer": {
+							"type": "object",
+							"properties": {
+								"byteLength": {
+									"type": "number"
+								}
+							},
+							"required": ["byteLength"],
+							"additionalProperties": false
+						},
+						"byteLength": {
+							"type": "number"
+						},
+						"byteOffset": {
+							"type": "number"
+						},
+						"length": {
+							"type": "number"
+						}
+					},
+					"required": [
+						"BYTES_PER_ELEMENT",
+						"buffer",
+						"byteLength",
+						"byteOffset",
+						"length"
+					],
+					"additionalProperties": {
+						"type": "number"
+					}
+				},
+				{
+					"type": "string"
+				},
+				{
+					"$ref": "#/definitions/FileTree"
+				}
+			]
+		},
+		"VFSDirectoryReference": {
+			"type": "object",
+			"properties": {
+				"resource": {
+					"type": "string",
+					"const": "vfs",
+					"description": "Identifies the file resource as Virtual File System (VFS)"
+				},
+				"path": {
+					"type": "string",
+					"description": "The path to the file in the VFS"
+				}
+			},
+			"required": ["resource", "path"],
+			"additionalProperties": false
+		},
+		"BlueprintAssetDirectoryReference": {
+			"type": "object",
+			"properties": {
+				"resource": {
+					"type": "string",
+					"const": "blueprint-asset:directory",
+					"description": "Identifies the directory resource as a Blueprint Asset"
+				},
+				"path": {
+					"type": "string",
+					"description": "The path to the directory in the Blueprint package"
+				}
+			},
+			"required": ["resource", "path"],
+			"additionalProperties": false
 		},
 		"InstallPluginOptions": {
 			"type": "object",

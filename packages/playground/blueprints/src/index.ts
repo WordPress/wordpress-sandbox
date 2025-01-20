@@ -12,6 +12,8 @@ export type {
 	OnStepCompleted,
 } from './lib/compile';
 export type {
+	BlueprintAssetReference,
+	BlueprintAssetDirectoryReference,
 	CachedResource,
 	CorePluginReference,
 	CorePluginResource,

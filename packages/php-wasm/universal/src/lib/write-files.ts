@@ -9,8 +9,13 @@ export interface WriteFilesOptions {
 	rmRoot?: boolean;
 }
 
-export interface FileTree
-	extends Record<string, Uint8Array | string | FileTree> {}
+type FileContent = Uint8Array | string | FileTree;
+type MaybePromise<T> = T | Promise<T>;
+
+export interface FileTree extends Record<string, FileContent> {}
+
+export interface FileTreeAsync
+	extends Record<string, MaybePromise<FileContent>> {}
 
 /**
  * Writes multiple files to a specified directory in the Playground
@@ -32,7 +37,7 @@ export interface FileTree
 export async function writeFiles(
 	php: UniversalPHP,
 	root: string,
-	newFiles: FileTree,
+	newFiles: MaybePromise<FileTreeAsync>,
 	{ rmRoot = false }: WriteFilesOptions = {}
 ) {
 	if (rmRoot) {
@@ -40,7 +45,10 @@ export async function writeFiles(
 			await php.rmdir(root, { recursive: true });
 		}
 	}
-	for (const [relativePath, content] of Object.entries(newFiles)) {
+	newFiles = await newFiles;
+	for (const relativePath of Object.keys(newFiles)) {
+		const content = await newFiles[relativePath];
+
 		const filePath = joinPaths(root, relativePath);
 		if (!(await php.fileExists(dirname(filePath)))) {
 			await php.mkdir(dirname(filePath));

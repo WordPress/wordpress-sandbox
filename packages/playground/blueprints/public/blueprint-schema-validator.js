@@ -178,6 +178,7 @@ const schema11 = {
 				{ $ref: '#/definitions/CoreThemeReference' },
 				{ $ref: '#/definitions/CorePluginReference' },
 				{ $ref: '#/definitions/UrlReference' },
+				{ $ref: '#/definitions/BlueprintAssetReference' },
 			],
 		},
 		VFSReference: {
@@ -292,6 +293,24 @@ const schema11 = {
 				},
 			},
 			required: ['resource', 'url'],
+			additionalProperties: false,
+		},
+		BlueprintAssetReference: {
+			type: 'object',
+			properties: {
+				resource: {
+					type: 'string',
+					const: 'blueprint-asset',
+					description:
+						'Identifies the file resource as a Blueprint Asset',
+				},
+				path: {
+					type: 'string',
+					description:
+						'The path to the file in the Blueprint package',
+				},
+			},
+			required: ['resource', 'path'],
 			additionalProperties: false,
 		},
 		StepDefinition: {
@@ -1046,6 +1065,8 @@ const schema11 = {
 			anyOf: [
 				{ $ref: '#/definitions/GitDirectoryReference' },
 				{ $ref: '#/definitions/DirectoryLiteralReference' },
+				{ $ref: '#/definitions/VFSDirectoryReference' },
+				{ $ref: '#/definitions/BlueprintAssetDirectoryReference' },
 			],
 		},
 		GitDirectoryReference: {
@@ -1076,7 +1097,6 @@ const schema11 = {
 		},
 		DirectoryLiteralReference: {
 			type: 'object',
-			additionalProperties: false,
 			properties: {
 				resource: {
 					type: 'string',
@@ -1087,17 +1107,77 @@ const schema11 = {
 				files: { $ref: '#/definitions/FileTree' },
 				name: { type: 'string' },
 			},
-			required: ['files', 'name', 'resource'],
+			required: ['resource', 'files', 'name'],
+			additionalProperties: false,
 		},
 		FileTree: {
 			type: 'object',
-			additionalProperties: {
-				anyOf: [
-					{ $ref: '#/definitions/FileTree' },
-					{ type: ['object', 'string'] },
-				],
-			},
+			additionalProperties: { $ref: '#/definitions/FileContent' },
 			properties: {},
+		},
+		FileContent: {
+			anyOf: [
+				{
+					type: 'object',
+					properties: {
+						BYTES_PER_ELEMENT: { type: 'number' },
+						buffer: {
+							type: 'object',
+							properties: { byteLength: { type: 'number' } },
+							required: ['byteLength'],
+							additionalProperties: false,
+						},
+						byteLength: { type: 'number' },
+						byteOffset: { type: 'number' },
+						length: { type: 'number' },
+					},
+					required: [
+						'BYTES_PER_ELEMENT',
+						'buffer',
+						'byteLength',
+						'byteOffset',
+						'length',
+					],
+					additionalProperties: { type: 'number' },
+				},
+				{ type: 'string' },
+				{ $ref: '#/definitions/FileTree' },
+			],
+		},
+		VFSDirectoryReference: {
+			type: 'object',
+			properties: {
+				resource: {
+					type: 'string',
+					const: 'vfs',
+					description:
+						'Identifies the file resource as Virtual File System (VFS)',
+				},
+				path: {
+					type: 'string',
+					description: 'The path to the file in the VFS',
+				},
+			},
+			required: ['resource', 'path'],
+			additionalProperties: false,
+		},
+		BlueprintAssetDirectoryReference: {
+			type: 'object',
+			properties: {
+				resource: {
+					type: 'string',
+					const: 'blueprint-asset:directory',
+					description:
+						'Identifies the directory resource as a Blueprint Asset',
+				},
+				path: {
+					type: 'string',
+					description:
+						'The path to the directory in the Blueprint package',
+				},
+			},
+			required: ['resource', 'path'],
+			additionalProperties: false,
 		},
 		InstallPluginOptions: {
 			type: 'object',
@@ -1502,6 +1582,7 @@ const schema16 = {
 		{ $ref: '#/definitions/CoreThemeReference' },
 		{ $ref: '#/definitions/CorePluginReference' },
 		{ $ref: '#/definitions/UrlReference' },
+		{ $ref: '#/definitions/BlueprintAssetReference' },
 	],
 };
 const schema17 = {
@@ -1612,6 +1693,22 @@ const schema21 = {
 		},
 	},
 	required: ['resource', 'url'],
+	additionalProperties: false,
+};
+const schema22 = {
+	type: 'object',
+	properties: {
+		resource: {
+			type: 'string',
+			const: 'blueprint-asset',
+			description: 'Identifies the file resource as a Blueprint Asset',
+		},
+		path: {
+			type: 'string',
+			description: 'The path to the file in the Blueprint package',
+		},
+	},
+	required: ['resource', 'path'],
 	additionalProperties: false,
 };
 function validate12(
@@ -2976,12 +3073,177 @@ function validate12(
 					}
 					var _valid0 = _errs55 === errors;
 					valid0 = valid0 || _valid0;
+					if (!valid0) {
+						const _errs65 = errors;
+						const _errs66 = errors;
+						if (errors === _errs66) {
+							if (
+								data &&
+								typeof data == 'object' &&
+								!Array.isArray(data)
+							) {
+								let missing7;
+								if (
+									(data.resource === undefined &&
+										(missing7 = 'resource')) ||
+									(data.path === undefined &&
+										(missing7 = 'path'))
+								) {
+									const err44 = {
+										instancePath,
+										schemaPath:
+											'#/definitions/BlueprintAssetReference/required',
+										keyword: 'required',
+										params: { missingProperty: missing7 },
+										message:
+											"must have required property '" +
+											missing7 +
+											"'",
+									};
+									if (vErrors === null) {
+										vErrors = [err44];
+									} else {
+										vErrors.push(err44);
+									}
+									errors++;
+								} else {
+									const _errs68 = errors;
+									for (const key7 in data) {
+										if (
+											!(
+												key7 === 'resource' ||
+												key7 === 'path'
+											)
+										) {
+											const err45 = {
+												instancePath,
+												schemaPath:
+													'#/definitions/BlueprintAssetReference/additionalProperties',
+												keyword: 'additionalProperties',
+												params: {
+													additionalProperty: key7,
+												},
+												message:
+													'must NOT have additional properties',
+											};
+											if (vErrors === null) {
+												vErrors = [err45];
+											} else {
+												vErrors.push(err45);
+											}
+											errors++;
+											break;
+										}
+									}
+									if (_errs68 === errors) {
+										if (data.resource !== undefined) {
+											let data19 = data.resource;
+											const _errs69 = errors;
+											if (typeof data19 !== 'string') {
+												const err46 = {
+													instancePath:
+														instancePath +
+														'/resource',
+													schemaPath:
+														'#/definitions/BlueprintAssetReference/properties/resource/type',
+													keyword: 'type',
+													params: { type: 'string' },
+													message: 'must be string',
+												};
+												if (vErrors === null) {
+													vErrors = [err46];
+												} else {
+													vErrors.push(err46);
+												}
+												errors++;
+											}
+											if ('blueprint-asset' !== data19) {
+												const err47 = {
+													instancePath:
+														instancePath +
+														'/resource',
+													schemaPath:
+														'#/definitions/BlueprintAssetReference/properties/resource/const',
+													keyword: 'const',
+													params: {
+														allowedValue:
+															'blueprint-asset',
+													},
+													message:
+														'must be equal to constant',
+												};
+												if (vErrors === null) {
+													vErrors = [err47];
+												} else {
+													vErrors.push(err47);
+												}
+												errors++;
+											}
+											var valid16 = _errs69 === errors;
+										} else {
+											var valid16 = true;
+										}
+										if (valid16) {
+											if (data.path !== undefined) {
+												const _errs71 = errors;
+												if (
+													typeof data.path !==
+													'string'
+												) {
+													const err48 = {
+														instancePath:
+															instancePath +
+															'/path',
+														schemaPath:
+															'#/definitions/BlueprintAssetReference/properties/path/type',
+														keyword: 'type',
+														params: {
+															type: 'string',
+														},
+														message:
+															'must be string',
+													};
+													if (vErrors === null) {
+														vErrors = [err48];
+													} else {
+														vErrors.push(err48);
+													}
+													errors++;
+												}
+												var valid16 =
+													_errs71 === errors;
+											} else {
+												var valid16 = true;
+											}
+										}
+									}
+								}
+							} else {
+								const err49 = {
+									instancePath,
+									schemaPath:
+										'#/definitions/BlueprintAssetReference/type',
+									keyword: 'type',
+									params: { type: 'object' },
+									message: 'must be object',
+								};
+								if (vErrors === null) {
+									vErrors = [err49];
+								} else {
+									vErrors.push(err49);
+								}
+								errors++;
+							}
+						}
+						var _valid0 = _errs65 === errors;
+						valid0 = valid0 || _valid0;
+					}
 				}
 			}
 		}
 	}
 	if (!valid0) {
-		const err44 = {
+		const err50 = {
 			instancePath,
 			schemaPath: '#/anyOf',
 			keyword: 'anyOf',
@@ -2989,9 +3251,9 @@ function validate12(
 			message: 'must match a schema in anyOf',
 		};
 		if (vErrors === null) {
-			vErrors = [err44];
+			vErrors = [err50];
 		} else {
-			vErrors.push(err44);
+			vErrors.push(err50);
 		}
 		errors++;
 		validate12.errors = vErrors;
@@ -3009,7 +3271,7 @@ function validate12(
 	validate12.errors = vErrors;
 	return errors === 0;
 }
-const schema22 = {
+const schema23 = {
 	type: 'object',
 	discriminator: { propertyName: 'step' },
 	required: ['step'],
@@ -3727,7 +3989,7 @@ const schema22 = {
 		},
 	],
 };
-const schema27 = {
+const schema31 = {
 	type: 'object',
 	properties: {
 		activate: {
@@ -3742,7 +4004,7 @@ const schema27 = {
 	},
 	additionalProperties: false,
 };
-const schema28 = {
+const schema32 = {
 	type: 'object',
 	properties: {
 		activate: {
@@ -3762,7 +4024,7 @@ const schema28 = {
 	},
 	additionalProperties: false,
 };
-const schema35 = {
+const schema39 = {
 	type: 'object',
 	properties: {
 		adminUsername: { type: 'string' },
@@ -3770,13 +4032,15 @@ const schema35 = {
 	},
 	additionalProperties: false,
 };
-const schema23 = {
+const schema24 = {
 	anyOf: [
 		{ $ref: '#/definitions/GitDirectoryReference' },
 		{ $ref: '#/definitions/DirectoryLiteralReference' },
+		{ $ref: '#/definitions/VFSDirectoryReference' },
+		{ $ref: '#/definitions/BlueprintAssetDirectoryReference' },
 	],
 };
-const schema24 = {
+const schema25 = {
 	type: 'object',
 	properties: {
 		resource: {
@@ -3797,9 +4061,42 @@ const schema24 = {
 	required: ['resource', 'url', 'ref', 'path'],
 	additionalProperties: false,
 };
-const schema25 = {
+const schema29 = {
 	type: 'object',
+	properties: {
+		resource: {
+			type: 'string',
+			const: 'vfs',
+			description:
+				'Identifies the file resource as Virtual File System (VFS)',
+		},
+		path: {
+			type: 'string',
+			description: 'The path to the file in the VFS',
+		},
+	},
+	required: ['resource', 'path'],
 	additionalProperties: false,
+};
+const schema30 = {
+	type: 'object',
+	properties: {
+		resource: {
+			type: 'string',
+			const: 'blueprint-asset:directory',
+			description:
+				'Identifies the directory resource as a Blueprint Asset',
+		},
+		path: {
+			type: 'string',
+			description: 'The path to the directory in the Blueprint package',
+		},
+	},
+	required: ['resource', 'path'],
+	additionalProperties: false,
+};
+const schema26 = {
+	type: 'object',
 	properties: {
 		resource: {
 			type: 'string',
@@ -3809,19 +4106,444 @@ const schema25 = {
 		files: { $ref: '#/definitions/FileTree' },
 		name: { type: 'string' },
 	},
-	required: ['files', 'name', 'resource'],
+	required: ['resource', 'files', 'name'],
+	additionalProperties: false,
 };
-const schema26 = {
+const schema27 = {
 	type: 'object',
-	additionalProperties: {
-		anyOf: [
-			{ $ref: '#/definitions/FileTree' },
-			{ type: ['object', 'string'] },
-		],
-	},
+	additionalProperties: { $ref: '#/definitions/FileContent' },
 	properties: {},
 };
+const schema28 = {
+	anyOf: [
+		{
+			type: 'object',
+			properties: {
+				BYTES_PER_ELEMENT: { type: 'number' },
+				buffer: {
+					type: 'object',
+					properties: { byteLength: { type: 'number' } },
+					required: ['byteLength'],
+					additionalProperties: false,
+				},
+				byteLength: { type: 'number' },
+				byteOffset: { type: 'number' },
+				length: { type: 'number' },
+			},
+			required: [
+				'BYTES_PER_ELEMENT',
+				'buffer',
+				'byteLength',
+				'byteOffset',
+				'length',
+			],
+			additionalProperties: { type: 'number' },
+		},
+		{ type: 'string' },
+		{ $ref: '#/definitions/FileTree' },
+	],
+};
 const wrapper0 = { validate: validate20 };
+function validate21(
+	data,
+	{ instancePath = '', parentData, parentDataProperty, rootData = data } = {}
+) {
+	let vErrors = null;
+	let errors = 0;
+	const _errs0 = errors;
+	let valid0 = false;
+	const _errs1 = errors;
+	if (errors === _errs1) {
+		if (data && typeof data == 'object' && !Array.isArray(data)) {
+			let missing0;
+			if (
+				(data.BYTES_PER_ELEMENT === undefined &&
+					(missing0 = 'BYTES_PER_ELEMENT')) ||
+				(data.buffer === undefined && (missing0 = 'buffer')) ||
+				(data.byteLength === undefined && (missing0 = 'byteLength')) ||
+				(data.byteOffset === undefined && (missing0 = 'byteOffset')) ||
+				(data.length === undefined && (missing0 = 'length'))
+			) {
+				const err0 = {
+					instancePath,
+					schemaPath: '#/anyOf/0/required',
+					keyword: 'required',
+					params: { missingProperty: missing0 },
+					message: "must have required property '" + missing0 + "'",
+				};
+				if (vErrors === null) {
+					vErrors = [err0];
+				} else {
+					vErrors.push(err0);
+				}
+				errors++;
+			} else {
+				const _errs3 = errors;
+				for (const key0 in data) {
+					if (
+						!(
+							key0 === 'BYTES_PER_ELEMENT' ||
+							key0 === 'buffer' ||
+							key0 === 'byteLength' ||
+							key0 === 'byteOffset' ||
+							key0 === 'length'
+						)
+					) {
+						let data0 = data[key0];
+						const _errs4 = errors;
+						if (!(typeof data0 == 'number' && isFinite(data0))) {
+							const err1 = {
+								instancePath:
+									instancePath +
+									'/' +
+									key0
+										.replace(/~/g, '~0')
+										.replace(/\//g, '~1'),
+								schemaPath:
+									'#/anyOf/0/additionalProperties/type',
+								keyword: 'type',
+								params: { type: 'number' },
+								message: 'must be number',
+							};
+							if (vErrors === null) {
+								vErrors = [err1];
+							} else {
+								vErrors.push(err1);
+							}
+							errors++;
+						}
+						var valid1 = _errs4 === errors;
+						if (!valid1) {
+							break;
+						}
+					}
+				}
+				if (_errs3 === errors) {
+					if (data.BYTES_PER_ELEMENT !== undefined) {
+						let data1 = data.BYTES_PER_ELEMENT;
+						const _errs6 = errors;
+						if (!(typeof data1 == 'number' && isFinite(data1))) {
+							const err2 = {
+								instancePath:
+									instancePath + '/BYTES_PER_ELEMENT',
+								schemaPath:
+									'#/anyOf/0/properties/BYTES_PER_ELEMENT/type',
+								keyword: 'type',
+								params: { type: 'number' },
+								message: 'must be number',
+							};
+							if (vErrors === null) {
+								vErrors = [err2];
+							} else {
+								vErrors.push(err2);
+							}
+							errors++;
+						}
+						var valid2 = _errs6 === errors;
+					} else {
+						var valid2 = true;
+					}
+					if (valid2) {
+						if (data.buffer !== undefined) {
+							let data2 = data.buffer;
+							const _errs8 = errors;
+							if (errors === _errs8) {
+								if (
+									data2 &&
+									typeof data2 == 'object' &&
+									!Array.isArray(data2)
+								) {
+									let missing1;
+									if (
+										data2.byteLength === undefined &&
+										(missing1 = 'byteLength')
+									) {
+										const err3 = {
+											instancePath:
+												instancePath + '/buffer',
+											schemaPath:
+												'#/anyOf/0/properties/buffer/required',
+											keyword: 'required',
+											params: {
+												missingProperty: missing1,
+											},
+											message:
+												"must have required property '" +
+												missing1 +
+												"'",
+										};
+										if (vErrors === null) {
+											vErrors = [err3];
+										} else {
+											vErrors.push(err3);
+										}
+										errors++;
+									} else {
+										const _errs10 = errors;
+										for (const key1 in data2) {
+											if (!(key1 === 'byteLength')) {
+												const err4 = {
+													instancePath:
+														instancePath +
+														'/buffer',
+													schemaPath:
+														'#/anyOf/0/properties/buffer/additionalProperties',
+													keyword:
+														'additionalProperties',
+													params: {
+														additionalProperty:
+															key1,
+													},
+													message:
+														'must NOT have additional properties',
+												};
+												if (vErrors === null) {
+													vErrors = [err4];
+												} else {
+													vErrors.push(err4);
+												}
+												errors++;
+												break;
+											}
+										}
+										if (_errs10 === errors) {
+											if (
+												data2.byteLength !== undefined
+											) {
+												let data3 = data2.byteLength;
+												if (
+													!(
+														typeof data3 ==
+															'number' &&
+														isFinite(data3)
+													)
+												) {
+													const err5 = {
+														instancePath:
+															instancePath +
+															'/buffer/byteLength',
+														schemaPath:
+															'#/anyOf/0/properties/buffer/properties/byteLength/type',
+														keyword: 'type',
+														params: {
+															type: 'number',
+														},
+														message:
+															'must be number',
+													};
+													if (vErrors === null) {
+														vErrors = [err5];
+													} else {
+														vErrors.push(err5);
+													}
+													errors++;
+												}
+											}
+										}
+									}
+								} else {
+									const err6 = {
+										instancePath: instancePath + '/buffer',
+										schemaPath:
+											'#/anyOf/0/properties/buffer/type',
+										keyword: 'type',
+										params: { type: 'object' },
+										message: 'must be object',
+									};
+									if (vErrors === null) {
+										vErrors = [err6];
+									} else {
+										vErrors.push(err6);
+									}
+									errors++;
+								}
+							}
+							var valid2 = _errs8 === errors;
+						} else {
+							var valid2 = true;
+						}
+						if (valid2) {
+							if (data.byteLength !== undefined) {
+								let data4 = data.byteLength;
+								const _errs13 = errors;
+								if (
+									!(
+										typeof data4 == 'number' &&
+										isFinite(data4)
+									)
+								) {
+									const err7 = {
+										instancePath:
+											instancePath + '/byteLength',
+										schemaPath:
+											'#/anyOf/0/properties/byteLength/type',
+										keyword: 'type',
+										params: { type: 'number' },
+										message: 'must be number',
+									};
+									if (vErrors === null) {
+										vErrors = [err7];
+									} else {
+										vErrors.push(err7);
+									}
+									errors++;
+								}
+								var valid2 = _errs13 === errors;
+							} else {
+								var valid2 = true;
+							}
+							if (valid2) {
+								if (data.byteOffset !== undefined) {
+									let data5 = data.byteOffset;
+									const _errs15 = errors;
+									if (
+										!(
+											typeof data5 == 'number' &&
+											isFinite(data5)
+										)
+									) {
+										const err8 = {
+											instancePath:
+												instancePath + '/byteOffset',
+											schemaPath:
+												'#/anyOf/0/properties/byteOffset/type',
+											keyword: 'type',
+											params: { type: 'number' },
+											message: 'must be number',
+										};
+										if (vErrors === null) {
+											vErrors = [err8];
+										} else {
+											vErrors.push(err8);
+										}
+										errors++;
+									}
+									var valid2 = _errs15 === errors;
+								} else {
+									var valid2 = true;
+								}
+								if (valid2) {
+									if (data.length !== undefined) {
+										let data6 = data.length;
+										const _errs17 = errors;
+										if (
+											!(
+												typeof data6 == 'number' &&
+												isFinite(data6)
+											)
+										) {
+											const err9 = {
+												instancePath:
+													instancePath + '/length',
+												schemaPath:
+													'#/anyOf/0/properties/length/type',
+												keyword: 'type',
+												params: { type: 'number' },
+												message: 'must be number',
+											};
+											if (vErrors === null) {
+												vErrors = [err9];
+											} else {
+												vErrors.push(err9);
+											}
+											errors++;
+										}
+										var valid2 = _errs17 === errors;
+									} else {
+										var valid2 = true;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		} else {
+			const err10 = {
+				instancePath,
+				schemaPath: '#/anyOf/0/type',
+				keyword: 'type',
+				params: { type: 'object' },
+				message: 'must be object',
+			};
+			if (vErrors === null) {
+				vErrors = [err10];
+			} else {
+				vErrors.push(err10);
+			}
+			errors++;
+		}
+	}
+	var _valid0 = _errs1 === errors;
+	valid0 = valid0 || _valid0;
+	if (!valid0) {
+		const _errs19 = errors;
+		if (typeof data !== 'string') {
+			const err11 = {
+				instancePath,
+				schemaPath: '#/anyOf/1/type',
+				keyword: 'type',
+				params: { type: 'string' },
+				message: 'must be string',
+			};
+			if (vErrors === null) {
+				vErrors = [err11];
+			} else {
+				vErrors.push(err11);
+			}
+			errors++;
+		}
+		var _valid0 = _errs19 === errors;
+		valid0 = valid0 || _valid0;
+		if (!valid0) {
+			const _errs21 = errors;
+			if (
+				!wrapper0.validate(data, {
+					instancePath,
+					parentData,
+					parentDataProperty,
+					rootData,
+				})
+			) {
+				vErrors =
+					vErrors === null
+						? wrapper0.validate.errors
+						: vErrors.concat(wrapper0.validate.errors);
+				errors = vErrors.length;
+			}
+			var _valid0 = _errs21 === errors;
+			valid0 = valid0 || _valid0;
+		}
+	}
+	if (!valid0) {
+		const err12 = {
+			instancePath,
+			schemaPath: '#/anyOf',
+			keyword: 'anyOf',
+			params: {},
+			message: 'must match a schema in anyOf',
+		};
+		if (vErrors === null) {
+			vErrors = [err12];
+		} else {
+			vErrors.push(err12);
+		}
+		errors++;
+		validate21.errors = vErrors;
+		return false;
+	} else {
+		errors = _errs0;
+		if (vErrors !== null) {
+			if (_errs0) {
+				vErrors.length = _errs0;
+			} else {
+				vErrors = null;
+			}
+		}
+	}
+	validate21.errors = vErrors;
+	return errors === 0;
+}
 function validate20(
 	data,
 	{ instancePath = '', parentData, parentDataProperty, rootData = data } = {}
@@ -3831,13 +4553,9 @@ function validate20(
 	if (errors === 0) {
 		if (data && typeof data == 'object' && !Array.isArray(data)) {
 			for (const key0 in data) {
-				let data0 = data[key0];
 				const _errs2 = errors;
-				const _errs3 = errors;
-				let valid1 = false;
-				const _errs4 = errors;
 				if (
-					!wrapper0.validate(data0, {
+					!validate21(data[key0], {
 						instancePath:
 							instancePath +
 							'/' +
@@ -3849,73 +4567,9 @@ function validate20(
 				) {
 					vErrors =
 						vErrors === null
-							? wrapper0.validate.errors
-							: vErrors.concat(wrapper0.validate.errors);
+							? validate21.errors
+							: vErrors.concat(validate21.errors);
 					errors = vErrors.length;
-				}
-				var _valid0 = _errs4 === errors;
-				valid1 = valid1 || _valid0;
-				if (!valid1) {
-					const _errs5 = errors;
-					if (
-						!(
-							data0 &&
-							typeof data0 == 'object' &&
-							!Array.isArray(data0)
-						) &&
-						typeof data0 !== 'string'
-					) {
-						const err0 = {
-							instancePath:
-								instancePath +
-								'/' +
-								key0.replace(/~/g, '~0').replace(/\//g, '~1'),
-							schemaPath: '#/additionalProperties/anyOf/1/type',
-							keyword: 'type',
-							params: {
-								type: schema26.additionalProperties.anyOf[1]
-									.type,
-							},
-							message: 'must be object,string',
-						};
-						if (vErrors === null) {
-							vErrors = [err0];
-						} else {
-							vErrors.push(err0);
-						}
-						errors++;
-					}
-					var _valid0 = _errs5 === errors;
-					valid1 = valid1 || _valid0;
-				}
-				if (!valid1) {
-					const err1 = {
-						instancePath:
-							instancePath +
-							'/' +
-							key0.replace(/~/g, '~0').replace(/\//g, '~1'),
-						schemaPath: '#/additionalProperties/anyOf',
-						keyword: 'anyOf',
-						params: {},
-						message: 'must match a schema in anyOf',
-					};
-					if (vErrors === null) {
-						vErrors = [err1];
-					} else {
-						vErrors.push(err1);
-					}
-					errors++;
-					validate20.errors = vErrors;
-					return false;
-				} else {
-					errors = _errs3;
-					if (vErrors !== null) {
-						if (_errs3) {
-							vErrors.length = _errs3;
-						} else {
-							vErrors = null;
-						}
-					}
 				}
 				var valid0 = _errs2 === errors;
 				if (!valid0) {
@@ -3948,9 +4602,9 @@ function validate19(
 		if (data && typeof data == 'object' && !Array.isArray(data)) {
 			let missing0;
 			if (
+				(data.resource === undefined && (missing0 = 'resource')) ||
 				(data.files === undefined && (missing0 = 'files')) ||
-				(data.name === undefined && (missing0 = 'name')) ||
-				(data.resource === undefined && (missing0 = 'resource'))
+				(data.name === undefined && (missing0 = 'name'))
 			) {
 				validate19.errors = [
 					{
@@ -4293,9 +4947,294 @@ function validate18(
 		}
 		var _valid0 = _errs13 === errors;
 		valid0 = valid0 || _valid0;
+		if (!valid0) {
+			const _errs14 = errors;
+			const _errs15 = errors;
+			if (errors === _errs15) {
+				if (data && typeof data == 'object' && !Array.isArray(data)) {
+					let missing1;
+					if (
+						(data.resource === undefined &&
+							(missing1 = 'resource')) ||
+						(data.path === undefined && (missing1 = 'path'))
+					) {
+						const err8 = {
+							instancePath,
+							schemaPath:
+								'#/definitions/VFSDirectoryReference/required',
+							keyword: 'required',
+							params: { missingProperty: missing1 },
+							message:
+								"must have required property '" +
+								missing1 +
+								"'",
+						};
+						if (vErrors === null) {
+							vErrors = [err8];
+						} else {
+							vErrors.push(err8);
+						}
+						errors++;
+					} else {
+						const _errs17 = errors;
+						for (const key1 in data) {
+							if (!(key1 === 'resource' || key1 === 'path')) {
+								const err9 = {
+									instancePath,
+									schemaPath:
+										'#/definitions/VFSDirectoryReference/additionalProperties',
+									keyword: 'additionalProperties',
+									params: { additionalProperty: key1 },
+									message:
+										'must NOT have additional properties',
+								};
+								if (vErrors === null) {
+									vErrors = [err9];
+								} else {
+									vErrors.push(err9);
+								}
+								errors++;
+								break;
+							}
+						}
+						if (_errs17 === errors) {
+							if (data.resource !== undefined) {
+								let data4 = data.resource;
+								const _errs18 = errors;
+								if (typeof data4 !== 'string') {
+									const err10 = {
+										instancePath:
+											instancePath + '/resource',
+										schemaPath:
+											'#/definitions/VFSDirectoryReference/properties/resource/type',
+										keyword: 'type',
+										params: { type: 'string' },
+										message: 'must be string',
+									};
+									if (vErrors === null) {
+										vErrors = [err10];
+									} else {
+										vErrors.push(err10);
+									}
+									errors++;
+								}
+								if ('vfs' !== data4) {
+									const err11 = {
+										instancePath:
+											instancePath + '/resource',
+										schemaPath:
+											'#/definitions/VFSDirectoryReference/properties/resource/const',
+										keyword: 'const',
+										params: { allowedValue: 'vfs' },
+										message: 'must be equal to constant',
+									};
+									if (vErrors === null) {
+										vErrors = [err11];
+									} else {
+										vErrors.push(err11);
+									}
+									errors++;
+								}
+								var valid4 = _errs18 === errors;
+							} else {
+								var valid4 = true;
+							}
+							if (valid4) {
+								if (data.path !== undefined) {
+									const _errs20 = errors;
+									if (typeof data.path !== 'string') {
+										const err12 = {
+											instancePath:
+												instancePath + '/path',
+											schemaPath:
+												'#/definitions/VFSDirectoryReference/properties/path/type',
+											keyword: 'type',
+											params: { type: 'string' },
+											message: 'must be string',
+										};
+										if (vErrors === null) {
+											vErrors = [err12];
+										} else {
+											vErrors.push(err12);
+										}
+										errors++;
+									}
+									var valid4 = _errs20 === errors;
+								} else {
+									var valid4 = true;
+								}
+							}
+						}
+					}
+				} else {
+					const err13 = {
+						instancePath,
+						schemaPath: '#/definitions/VFSDirectoryReference/type',
+						keyword: 'type',
+						params: { type: 'object' },
+						message: 'must be object',
+					};
+					if (vErrors === null) {
+						vErrors = [err13];
+					} else {
+						vErrors.push(err13);
+					}
+					errors++;
+				}
+			}
+			var _valid0 = _errs14 === errors;
+			valid0 = valid0 || _valid0;
+			if (!valid0) {
+				const _errs22 = errors;
+				const _errs23 = errors;
+				if (errors === _errs23) {
+					if (
+						data &&
+						typeof data == 'object' &&
+						!Array.isArray(data)
+					) {
+						let missing2;
+						if (
+							(data.resource === undefined &&
+								(missing2 = 'resource')) ||
+							(data.path === undefined && (missing2 = 'path'))
+						) {
+							const err14 = {
+								instancePath,
+								schemaPath:
+									'#/definitions/BlueprintAssetDirectoryReference/required',
+								keyword: 'required',
+								params: { missingProperty: missing2 },
+								message:
+									"must have required property '" +
+									missing2 +
+									"'",
+							};
+							if (vErrors === null) {
+								vErrors = [err14];
+							} else {
+								vErrors.push(err14);
+							}
+							errors++;
+						} else {
+							const _errs25 = errors;
+							for (const key2 in data) {
+								if (!(key2 === 'resource' || key2 === 'path')) {
+									const err15 = {
+										instancePath,
+										schemaPath:
+											'#/definitions/BlueprintAssetDirectoryReference/additionalProperties',
+										keyword: 'additionalProperties',
+										params: { additionalProperty: key2 },
+										message:
+											'must NOT have additional properties',
+									};
+									if (vErrors === null) {
+										vErrors = [err15];
+									} else {
+										vErrors.push(err15);
+									}
+									errors++;
+									break;
+								}
+							}
+							if (_errs25 === errors) {
+								if (data.resource !== undefined) {
+									let data6 = data.resource;
+									const _errs26 = errors;
+									if (typeof data6 !== 'string') {
+										const err16 = {
+											instancePath:
+												instancePath + '/resource',
+											schemaPath:
+												'#/definitions/BlueprintAssetDirectoryReference/properties/resource/type',
+											keyword: 'type',
+											params: { type: 'string' },
+											message: 'must be string',
+										};
+										if (vErrors === null) {
+											vErrors = [err16];
+										} else {
+											vErrors.push(err16);
+										}
+										errors++;
+									}
+									if ('blueprint-asset:directory' !== data6) {
+										const err17 = {
+											instancePath:
+												instancePath + '/resource',
+											schemaPath:
+												'#/definitions/BlueprintAssetDirectoryReference/properties/resource/const',
+											keyword: 'const',
+											params: {
+												allowedValue:
+													'blueprint-asset:directory',
+											},
+											message:
+												'must be equal to constant',
+										};
+										if (vErrors === null) {
+											vErrors = [err17];
+										} else {
+											vErrors.push(err17);
+										}
+										errors++;
+									}
+									var valid6 = _errs26 === errors;
+								} else {
+									var valid6 = true;
+								}
+								if (valid6) {
+									if (data.path !== undefined) {
+										const _errs28 = errors;
+										if (typeof data.path !== 'string') {
+											const err18 = {
+												instancePath:
+													instancePath + '/path',
+												schemaPath:
+													'#/definitions/BlueprintAssetDirectoryReference/properties/path/type',
+												keyword: 'type',
+												params: { type: 'string' },
+												message: 'must be string',
+											};
+											if (vErrors === null) {
+												vErrors = [err18];
+											} else {
+												vErrors.push(err18);
+											}
+											errors++;
+										}
+										var valid6 = _errs28 === errors;
+									} else {
+										var valid6 = true;
+									}
+								}
+							}
+						}
+					} else {
+						const err19 = {
+							instancePath,
+							schemaPath:
+								'#/definitions/BlueprintAssetDirectoryReference/type',
+							keyword: 'type',
+							params: { type: 'object' },
+							message: 'must be object',
+						};
+						if (vErrors === null) {
+							vErrors = [err19];
+						} else {
+							vErrors.push(err19);
+						}
+						errors++;
+					}
+				}
+				var _valid0 = _errs22 === errors;
+				valid0 = valid0 || _valid0;
+			}
+		}
 	}
 	if (!valid0) {
-		const err8 = {
+		const err20 = {
 			instancePath,
 			schemaPath: '#/anyOf',
 			keyword: 'anyOf',
@@ -4303,9 +5242,9 @@ function validate18(
 			message: 'must match a schema in anyOf',
 		};
 		if (vErrors === null) {
-			vErrors = [err8];
+			vErrors = [err20];
 		} else {
-			vErrors.push(err8);
+			vErrors.push(err20);
 		}
 		errors++;
 		validate18.errors = vErrors;
@@ -4323,7 +5262,7 @@ function validate18(
 	validate18.errors = vErrors;
 	return errors === 0;
 }
-const schema29 = {
+const schema33 = {
 	type: 'object',
 	properties: {
 		method: {
@@ -4420,12 +5359,12 @@ const schema29 = {
 	required: ['url'],
 	additionalProperties: false,
 };
-const schema30 = {
+const schema34 = {
 	type: 'string',
 	enum: ['GET', 'POST', 'HEAD', 'OPTIONS', 'PATCH', 'PUT', 'DELETE'],
 };
-const schema31 = { type: 'object', additionalProperties: { type: 'string' } };
-function validate28(
+const schema35 = { type: 'object', additionalProperties: { type: 'string' } };
+function validate30(
 	data,
 	{ instancePath = '', parentData, parentDataProperty, rootData = data } = {}
 ) {
@@ -4435,7 +5374,7 @@ function validate28(
 		if (data && typeof data == 'object' && !Array.isArray(data)) {
 			let missing0;
 			if (data.url === undefined && (missing0 = 'url')) {
-				validate28.errors = [
+				validate30.errors = [
 					{
 						instancePath,
 						schemaPath: '#/required',
@@ -4457,7 +5396,7 @@ function validate28(
 							key0 === 'body'
 						)
 					) {
-						validate28.errors = [
+						validate30.errors = [
 							{
 								instancePath,
 								schemaPath: '#/additionalProperties',
@@ -4475,7 +5414,7 @@ function validate28(
 						let data0 = data.method;
 						const _errs2 = errors;
 						if (typeof data0 !== 'string') {
-							validate28.errors = [
+							validate30.errors = [
 								{
 									instancePath: instancePath + '/method',
 									schemaPath: '#/definitions/HTTPMethod/type',
@@ -4497,12 +5436,12 @@ function validate28(
 								data0 === 'DELETE'
 							)
 						) {
-							validate28.errors = [
+							validate30.errors = [
 								{
 									instancePath: instancePath + '/method',
 									schemaPath: '#/definitions/HTTPMethod/enum',
 									keyword: 'enum',
-									params: { allowedValues: schema30.enum },
+									params: { allowedValues: schema34.enum },
 									message:
 										'must be equal to one of the allowed values',
 								},
@@ -4517,7 +5456,7 @@ function validate28(
 						if (data.url !== undefined) {
 							const _errs5 = errors;
 							if (typeof data.url !== 'string') {
-								validate28.errors = [
+								validate30.errors = [
 									{
 										instancePath: instancePath + '/url',
 										schemaPath: '#/properties/url/type',
@@ -4548,7 +5487,7 @@ function validate28(
 											if (
 												typeof data2[key1] !== 'string'
 											) {
-												validate28.errors = [
+												validate30.errors = [
 													{
 														instancePath:
 															instancePath +
@@ -4580,7 +5519,7 @@ function validate28(
 											}
 										}
 									} else {
-										validate28.errors = [
+										validate30.errors = [
 											{
 												instancePath:
 													instancePath + '/headers',
@@ -6569,7 +7508,7 @@ function validate28(
 											vErrors.push(err34);
 										}
 										errors++;
-										validate28.errors = vErrors;
+										validate30.errors = vErrors;
 										return false;
 									} else {
 										errors = _errs14;
@@ -6591,7 +7530,7 @@ function validate28(
 				}
 			}
 		} else {
-			validate28.errors = [
+			validate30.errors = [
 				{
 					instancePath,
 					schemaPath: '#/type',
@@ -6603,10 +7542,10 @@ function validate28(
 			return false;
 		}
 	}
-	validate28.errors = vErrors;
+	validate30.errors = vErrors;
 	return errors === 0;
 }
-const schema32 = {
+const schema36 = {
 	type: 'object',
 	properties: {
 		relativeUri: {
@@ -6672,7 +7611,7 @@ const schema32 = {
 	},
 	additionalProperties: false,
 };
-function validate30(
+function validate32(
 	data,
 	{ instancePath = '', parentData, parentDataProperty, rootData = data } = {}
 ) {
@@ -6682,8 +7621,8 @@ function validate30(
 		if (data && typeof data == 'object' && !Array.isArray(data)) {
 			const _errs1 = errors;
 			for (const key0 in data) {
-				if (!func2.call(schema32.properties, key0)) {
-					validate30.errors = [
+				if (!func2.call(schema36.properties, key0)) {
+					validate32.errors = [
 						{
 							instancePath,
 							schemaPath: '#/additionalProperties',
@@ -6700,7 +7639,7 @@ function validate30(
 				if (data.relativeUri !== undefined) {
 					const _errs2 = errors;
 					if (typeof data.relativeUri !== 'string') {
-						validate30.errors = [
+						validate32.errors = [
 							{
 								instancePath: instancePath + '/relativeUri',
 								schemaPath: '#/properties/relativeUri/type',
@@ -6719,7 +7658,7 @@ function validate30(
 					if (data.scriptPath !== undefined) {
 						const _errs4 = errors;
 						if (typeof data.scriptPath !== 'string') {
-							validate30.errors = [
+							validate32.errors = [
 								{
 									instancePath: instancePath + '/scriptPath',
 									schemaPath: '#/properties/scriptPath/type',
@@ -6738,7 +7677,7 @@ function validate30(
 						if (data.protocol !== undefined) {
 							const _errs6 = errors;
 							if (typeof data.protocol !== 'string') {
-								validate30.errors = [
+								validate32.errors = [
 									{
 										instancePath:
 											instancePath + '/protocol',
@@ -6760,7 +7699,7 @@ function validate30(
 								let data3 = data.method;
 								const _errs8 = errors;
 								if (typeof data3 !== 'string') {
-									validate30.errors = [
+									validate32.errors = [
 										{
 											instancePath:
 												instancePath + '/method',
@@ -6784,7 +7723,7 @@ function validate30(
 										data3 === 'DELETE'
 									)
 								) {
-									validate30.errors = [
+									validate32.errors = [
 										{
 											instancePath:
 												instancePath + '/method',
@@ -6792,7 +7731,7 @@ function validate30(
 												'#/definitions/HTTPMethod/enum',
 											keyword: 'enum',
 											params: {
-												allowedValues: schema30.enum,
+												allowedValues: schema34.enum,
 											},
 											message:
 												'must be equal to one of the allowed values',
@@ -6821,7 +7760,7 @@ function validate30(
 													typeof data4[key1] !==
 													'string'
 												) {
-													validate30.errors = [
+													validate32.errors = [
 														{
 															instancePath:
 																instancePath +
@@ -6853,7 +7792,7 @@ function validate30(
 												}
 											}
 										} else {
-											validate30.errors = [
+											validate32.errors = [
 												{
 													instancePath:
 														instancePath +
@@ -7491,7 +8430,7 @@ function validate30(
 												vErrors.push(err12);
 											}
 											errors++;
-											validate30.errors = vErrors;
+											validate32.errors = vErrors;
 											return false;
 										} else {
 											errors = _errs18;
@@ -7524,7 +8463,7 @@ function validate30(
 																key4
 															] !== 'string'
 														) {
-															validate30.errors =
+															validate32.errors =
 																[
 																	{
 																		instancePath:
@@ -7559,7 +8498,7 @@ function validate30(
 														}
 													}
 												} else {
-													validate30.errors = [
+													validate32.errors = [
 														{
 															instancePath:
 																instancePath +
@@ -7600,7 +8539,7 @@ function validate30(
 																	key5
 																] !== 'string'
 															) {
-																validate30.errors =
+																validate32.errors =
 																	[
 																		{
 																			instancePath:
@@ -7636,7 +8575,7 @@ function validate30(
 															}
 														}
 													} else {
-														validate30.errors = [
+														validate32.errors = [
 															{
 																instancePath:
 																	instancePath +
@@ -7665,7 +8604,7 @@ function validate30(
 														typeof data.code !==
 														'string'
 													) {
-														validate30.errors = [
+														validate32.errors = [
 															{
 																instancePath:
 																	instancePath +
@@ -7697,7 +8636,7 @@ function validate30(
 				}
 			}
 		} else {
-			validate30.errors = [
+			validate32.errors = [
 				{
 					instancePath,
 					schemaPath: '#/type',
@@ -7709,7 +8648,7 @@ function validate30(
 			return false;
 		}
 	}
-	validate30.errors = vErrors;
+	validate32.errors = vErrors;
 	return errors === 0;
 }
 function validate14(
@@ -9068,7 +10007,7 @@ function validate14(
 																			'enum',
 																		params: {
 																			allowedValues:
-																				schema22
+																				schema23
 																					.oneOf[3]
 																					.properties
 																					.method
@@ -11011,7 +11950,7 @@ function validate14(
 															keyword: 'enum',
 															params: {
 																allowedValues:
-																	schema22
+																	schema23
 																		.oneOf[9]
 																		.properties
 																		.ifAlreadyInstalled
@@ -11677,7 +12616,7 @@ function validate14(
 															keyword: 'enum',
 															params: {
 																allowedValues:
-																	schema22
+																	schema23
 																		.oneOf[10]
 																		.properties
 																		.ifAlreadyInstalled
@@ -13627,7 +14566,7 @@ function validate14(
 												) {
 													const _errs266 = errors;
 													if (
-														!validate28(
+														!validate30(
 															data.request,
 															{
 																instancePath:
@@ -13643,9 +14582,9 @@ function validate14(
 													) {
 														vErrors =
 															vErrors === null
-																? validate28.errors
+																? validate30.errors
 																: vErrors.concat(
-																		validate28.errors
+																		validate30.errors
 																  );
 														errors = vErrors.length;
 													}
@@ -14833,7 +15772,7 @@ function validate14(
 												) {
 													const _errs321 = errors;
 													if (
-														!validate30(
+														!validate32(
 															data.options,
 															{
 																instancePath:
@@ -14849,9 +15788,9 @@ function validate14(
 													) {
 														vErrors =
 															vErrors === null
-																? validate30.errors
+																? validate32.errors
 																: vErrors.concat(
-																		validate30.errors
+																		validate32.errors
 																  );
 														errors = vErrors.length;
 													}

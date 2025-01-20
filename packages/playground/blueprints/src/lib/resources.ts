@@ -2,8 +2,8 @@ import {
 	cloneResponseMonitorProgress,
 	ProgressTracker,
 } from '@php-wasm/progress';
-import { FileTree, UniversalPHP } from '@php-wasm/universal';
-import { dirname, Semaphore } from '@php-wasm/util';
+import { FileTree, FileTreeAsync, UniversalPHP } from '@php-wasm/universal';
+import { dirname, joinPaths, Semaphore } from '@php-wasm/util';
 import {
 	listDescendantFiles,
 	listGitFiles,
@@ -21,9 +21,17 @@ export const ResourceTypes = [
 	'wordpress.org/plugins',
 	'url',
 	'git:directory',
+	'blueprint-asset',
+	'blueprint-asset:directory',
 ] as const;
 
 export type VFSReference = {
+	/** Identifies the file resource as Virtual File System (VFS) */
+	resource: 'vfs';
+	/** The path to the file in the VFS */
+	path: string;
+};
+export type VFSDirectoryReference = {
 	/** Identifies the file resource as Virtual File System (VFS) */
 	resource: 'vfs';
 	/** The path to the file in the VFS */
@@ -67,13 +75,28 @@ export type GitDirectoryReference = {
 	/** The path to the directory in the git repository */
 	path: string;
 };
+export type BlueprintAssetReference = {
+	/** Identifies the file resource as a Blueprint Asset */
+	resource: 'blueprint-asset';
+	/** The path to the file in the Blueprint package */
+	path: string;
+};
+export type BlueprintAssetDirectoryReference = {
+	/** Identifies the directory resource as a Blueprint Asset */
+	resource: 'blueprint-asset:directory';
+	/** The path to the directory in the Blueprint package */
+	path: string;
+};
+
 export interface Directory {
-	files: FileTree;
+	files: FileTreeAsync;
 	name: string;
 }
-export type DirectoryLiteralReference = Directory & {
+export type DirectoryLiteralReference = {
 	/** Identifies the file resource as a git directory */
 	resource: 'literal:directory';
+	files: FileTree;
+	name: string;
 };
 
 export type FileReference =
@@ -81,11 +104,14 @@ export type FileReference =
 	| LiteralReference
 	| CoreThemeReference
 	| CorePluginReference
-	| UrlReference;
+	| UrlReference
+	| BlueprintAssetReference;
 
 export type DirectoryReference =
 	| GitDirectoryReference
-	| DirectoryLiteralReference;
+	| DirectoryLiteralReference
+	| VFSDirectoryReference
+	| BlueprintAssetDirectoryReference;
 
 export function isResourceReference(ref: any): ref is FileReference {
 	return (
@@ -98,6 +124,7 @@ export function isResourceReference(ref: any): ref is FileReference {
 
 export abstract class Resource<T extends File | Directory> {
 	/** Optional progress tracker to monitor progress */
+	// TODO: Why is this kept at the resource level and not just passed to resolve()?
 	protected _progress?: ProgressTracker;
 	get progress() {
 		return this._progress;
@@ -170,6 +197,12 @@ export abstract class Resource<T extends File | Directory> {
 				break;
 			case 'literal:directory':
 				resource = new LiteralDirectoryResource(ref, progress);
+				break;
+			case 'blueprint-asset':
+				resource = new BlueprintAssetResource(ref, progress);
+				break;
+			case 'blueprint-asset:directory':
+				resource = new BlueprintAssetDirectoryResource(ref, progress);
 				break;
 			default:
 				throw new Error(`Invalid resource: ${ref}`);
@@ -251,6 +284,107 @@ export class VFSResource extends Resource<File> {
 	get name() {
 		return this.resource.path.split('/').pop() || '';
 	}
+}
+
+export class VFSDirectoryResource extends Resource<Directory> {
+	constructor(
+		private reference: VFSReference,
+		public override _progress?: ProgressTracker
+	) {
+		super();
+	}
+
+	async resolve() {
+		const name = this.name;
+		const files = await createLazyVFSFileTree(
+			this.reference.path,
+			this.playground!
+		);
+		return { name, files };
+	}
+
+	/** @inheritDoc */
+	get name() {
+		return this.reference.path.split('/').pop() || '';
+	}
+}
+
+export class BlueprintAssetResource extends VFSResource {
+	constructor(
+		private originalReference: BlueprintAssetReference,
+		public override _progress?: ProgressTracker
+	) {
+		const vfsReference: VFSReference = {
+			resource: 'vfs',
+			path: joinPaths(
+				// TODO: This should be at least a constant if we're not using a path mapping function for Blueprint assets.
+				'/internal/shared/blueprint-assets',
+				originalReference.path
+			),
+		};
+		super(vfsReference, _progress);
+	}
+
+	/** @inheritDoc */
+	override get name() {
+		return this.originalReference.path.split('/').pop() || '';
+	}
+}
+
+export class BlueprintAssetDirectoryResource extends VFSDirectoryResource {
+	constructor(
+		private originalReference: BlueprintAssetDirectoryReference,
+		public override _progress?: ProgressTracker
+	) {
+		const vfsReference: VFSReference = {
+			resource: 'vfs',
+			path: joinPaths(
+				// TODO: This should be at least a constant if we're not using a path mapping function for Blueprint assets.
+				'/internal/shared/blueprint-assets',
+				originalReference.path
+			),
+		};
+		super(vfsReference, _progress);
+	}
+
+	/** @inheritDoc */
+	override get name() {
+		return this.originalReference.path.split('/').pop() || '';
+	}
+}
+
+// TODO: Should we export this?
+async function createLazyVFSFileTree(
+	path: string,
+	playground: UniversalPHP
+): Promise<FileTreeAsync> {
+	const lazyFileTree: FileTreeAsync = {};
+
+	if (!(await playground.isDir(path))) {
+		throw new Error(`Path "${path}" is not a directory`);
+	}
+
+	for (const fileName of await playground.listFiles(path)) {
+		Object.defineProperty(lazyFileTree, fileName, {
+			configurable: false,
+			enumerable: true,
+			async get() {
+				const fullPath = joinPaths(path, fileName);
+
+				if (!(await playground.fileExists(fullPath))) {
+					return undefined;
+				}
+
+				if (await playground.isDir(fullPath)) {
+					return createLazyVFSFileTree(fullPath, playground);
+				} else {
+					return playground.readFileAsBuffer(fullPath);
+				}
+			},
+		});
+	}
+
+	return lazyFileTree;
 }
 
 /**

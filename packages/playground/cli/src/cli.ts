@@ -120,12 +120,29 @@ async function run() {
 				}
 			}
 			if (args.blueprint !== undefined) {
-				const blueprintPath = path.resolve(
-					process.cwd(),
-					args.blueprint
-				);
+				let blueprintPath = path.resolve(process.cwd(), args.blueprint);
 				if (!fs.existsSync(blueprintPath)) {
 					throw new Error('Blueprint file does not exist');
+				}
+
+				if (fs.lstatSync(blueprintPath).isDirectory()) {
+					const blueprintPackageDir = blueprintPath;
+
+					blueprintPath = path.join(
+						blueprintPath,
+						'META-INF',
+						'blueprint.json'
+					);
+					if (!fs.existsSync(blueprintPath)) {
+						throw new Error(
+							'Blueprint file does not exist in the package'
+						);
+					}
+
+					args.mountBeforeInstall = args.mountBeforeInstall || [];
+					args.mountBeforeInstall.push(
+						`${blueprintPackageDir}:/internal/shared/blueprint-assets`
+					);
 				}
 
 				const content = fs.readFileSync(blueprintPath, 'utf-8');

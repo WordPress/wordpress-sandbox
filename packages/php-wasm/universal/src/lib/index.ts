@@ -64,7 +64,7 @@ export type {
 } from './php-request-handler';
 export { rotatePHPRuntime } from './rotate-php-runtime';
 export { writeFiles } from './write-files';
-export type { FileTree } from './write-files';
+export type { FileTree, FileTreeAsync } from './write-files';
 
 export {
 	DEFAULT_BASE_URL,
