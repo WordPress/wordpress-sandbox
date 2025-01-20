@@ -35,6 +35,7 @@ import {
 import { ImportFormModal } from '../import-form-modal';
 import { PreviewPRModal } from '../../github/preview-pr';
 import { MissingSiteModal } from '../missing-site-modal';
+import { RenameSiteModal } from '../rename-site-modal';
 
 acquireOAuthTokenIfNeeded();
 
@@ -48,6 +49,7 @@ export const modalSlugs = {
 	PREVIEW_PR_WP: 'preview-pr-wordpress',
 	PREVIEW_PR_GUTENBERG: 'preview-pr-gutenberg',
 	MISSING_SITE_PROMPT: 'missing-site-prompt',
+	RENAME_SITE: 'rename-site',
 };
 
 const displayMode = getDisplayModeFromQuery();
@@ -225,6 +227,8 @@ function Modals(blueprint: Blueprint) {
 				}}
 			/>
 		);
+	} else if (currentModal === modalSlugs.RENAME_SITE) {
+		return <RenameSiteModal />;
 	} else if (currentModal === modalSlugs.MISSING_SITE_PROMPT) {
 		return <MissingSiteModal />;
 	}
