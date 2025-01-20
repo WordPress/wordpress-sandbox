@@ -1,0 +1,95 @@
+{
+	"name": "playground-blueprints-builder",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "packages/playground/blueprints-builder/src",
+	"projectType": "library",
+	"targets": {
+		"build": {
+			"executor": "@wp-playground/nx-extensions:package-json",
+			"options": {
+				"tsConfig": "packages/playground/blueprints-builder/tsconfig.lib.json",
+				"outputPath": "dist/packages/playground/blueprints-builder",
+				"buildTarget": "playground-blueprints-builder:build:bundle:production"
+			},
+			"dependsOn": [
+				"build:blueprint-schema",
+				"build:rollup-declarations-for-schema-generation"
+			]
+		},
+		"build:blueprint-schema": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"node packages/playground/blueprints-builder/bin/generate-schema.js"
+				],
+				"parallel": false
+			},
+			"dependsOn": ["build:rollup-declarations-for-schema-generation"]
+		},
+		"build:rollup-declarations-for-schema-generation": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"mkdir -p dist/packages/playground/blueprints-builder",
+					"npx dts-bundle-generator -o packages/playground/blueprints-builder/src/rollup.d.ts -- packages/playground/blueprints-builder/src/index.ts"
+				],
+				"parallel": false
+			},
+			"dependsOn": ["build:bundle"]
+		},
+		"build:bundle": {
+			"executor": "@nx/vite:build",
+			"outputs": ["{options.outputPath}"],
+			"options": {
+				"outputPath": "dist/packages/playground/blueprints-builder"
+			}
+		},
+		"publish": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "node tools/scripts/publish.mjs playground-blueprints-builder {args.ver} {args.tag}"
+			},
+			"dependsOn": ["build"]
+		},
+		"test": {
+			"executor": "nx:noop",
+			"dependsOn": ["test:vite"]
+		},
+		"test:esmcjs": {
+			"executor": "@wp-playground/nx-extensions:assert-built-esm-and-cjs",
+			"options": {
+				"outputPath": "dist/packages/playground/blueprints-builder"
+			},
+			"dependsOn": ["build"]
+		},
+		"test:vite": {
+			"executor": "@nx/vite:test",
+			"outputs": [
+				"{workspaceRoot}/coverage/packages/playground/blueprints-builder"
+			],
+			"options": {
+				"passWithNoTests": true,
+				"reportsDirectory": "../../../coverage/packages/playground/blueprints-builder"
+			}
+		},
+		"lint": {
+			"executor": "@nx/linter:eslint",
+			"outputs": ["{options.outputFile}"],
+			"options": {
+				"lintFilePatterns": [
+					"packages/playground/blueprints-builder/**/*.ts"
+				]
+			}
+		},
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"tsc -p packages/playground/remote/tsconfig.spec.json --noEmit",
+					"tsc -p packages/playground/remote/tsconfig.lib.json --noEmit"
+				]
+			}
+		}
+	},
+	"tags": []
+}

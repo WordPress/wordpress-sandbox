@@ -1,0 +1,29 @@
+{
+	"name": "@wp-playground/blueprints-builder",
+	"version": "0.9.38",
+	"exports": {
+		".": {
+			"import": "./index.js",
+			"require": "./index.cjs"
+		},
+		"./package.json": "./package.json"
+	},
+	"type": "module",
+	"main": "./index.cjs",
+	"module": "./index.js",
+	"typedoc": {
+		"entryPoint": "./src/index.ts",
+		"readmeFile": "./README.md",
+		"displayName": "@wp-playground/blueprints-builder",
+		"tsconfig": "./tsconfig.lib.json"
+	},
+	"publishConfig": {
+		"access": "public",
+		"directory": "../../../dist/packages/playground/blueprints-builder"
+	},
+	"gitHead": "2f8d8f3cea548fbd75111e8659a92f601cddc593",
+	"engines": {
+		"node": ">=18.18.0",
+		"npm": ">=8.11.0"
+	}
+}

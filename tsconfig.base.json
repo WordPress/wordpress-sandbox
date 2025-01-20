@@ -42,6 +42,9 @@
 			"@wp-playground/blueprints": [
 				"packages/playground/blueprints/src/index.ts"
 			],
+			"@wp-playground/blueprints-builder": [
+				"packages/playground/blueprints-builder/src/index.ts"
+			],
 			"@wp-playground/cli": ["packages/playground/cli/src/cli.ts"],
 			"@wp-playground/client": [
 				"packages/playground/client/src/index.ts"
