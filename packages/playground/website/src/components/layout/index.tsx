@@ -32,6 +32,7 @@ import {
 	setActiveModal,
 	setSiteManagerOpen,
 } from '../../lib/state/redux/slice-ui';
+import { logErrorEvent } from '../../lib/tracking';
 import { ImportFormModal } from '../import-form-modal';
 import { PreviewPRModal } from '../../github/preview-pr';
 import { MissingSiteModal } from '../missing-site-modal';
@@ -164,6 +165,8 @@ function Modals(blueprint: Blueprint) {
 	useEffect(() => {
 		addCrashListener(logger, (e) => {
 			const error = e as CustomEvent;
+			logErrorEvent(error.detail.source ?? 'unknown');
+
 			if (error.detail?.source === 'php-wasm') {
 				dispatch(setActiveModal(modalSlugs.ERROR_REPORT));
 			}

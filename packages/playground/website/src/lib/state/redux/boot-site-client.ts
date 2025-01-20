@@ -10,8 +10,12 @@ import {
 	removeClientInfo,
 	updateClientInfo,
 } from './slice-clients';
-import { logTrackingEvent } from '../../tracking';
-import { Blueprint, StepDefinition } from '@wp-playground/blueprints';
+import {
+	logBlueprintEvents,
+	logErrorEvent,
+	logTrackingEvent,
+} from '../../tracking';
+import { Blueprint } from '@wp-playground/blueprints';
 import { logger } from '@php-wasm/logger';
 import { setupPostMessageRelay } from '@php-wasm/web';
 import { startPlaygroundWeb } from '@wp-playground/client';
@@ -93,25 +97,15 @@ export function bootSiteClient(
 			}
 		}
 
-		logTrackingEvent('load');
-
 		let blueprint: Blueprint;
 		if (isWordPressInstalled) {
 			blueprint = site.metadata.runtimeConfiguration;
 		} else {
 			blueprint = site.metadata.originalBlueprint;
-			// Log the names of provided Blueprint's steps.
-			// Only the names (e.g. "runPhp" or "login") are logged. Step options like
-			// code, password, URLs are never sent anywhere.
-			const steps = (blueprint?.steps || [])
-				?.filter(
-					(step: any) => !!(typeof step === 'object' && step?.step)
-				)
-				.map((step) => (step as StepDefinition).step);
-			for (const step of steps) {
-				logTrackingEvent('step', { step });
-			}
 		}
+
+		logTrackingEvent('load');
+		logBlueprintEvents(blueprint);
 
 		let playground: PlaygroundClient;
 		try {
@@ -177,6 +171,7 @@ export function bootSiteClient(
 			}
 		} catch (e) {
 			logger.error(e);
+			logErrorEvent('bootSiteClient');
 			dispatch(setActiveSiteError('site-boot-failed'));
 			dispatch(setActiveModal(modalSlugs.ERROR_REPORT));
 			return;

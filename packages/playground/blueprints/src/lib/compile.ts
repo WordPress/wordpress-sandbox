@@ -405,7 +405,7 @@ function compileVersion<T>(
  * @param step The object to test
  * @returns Whether the object is a StepDefinition
  */
-function isStepDefinition(
+export function isStepDefinition(
 	step: Step | string | undefined | false | null
 ): step is StepDefinition {
 	return !!(typeof step === 'object' && step);
