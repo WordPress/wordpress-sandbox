@@ -109,7 +109,7 @@ export function EnsurePlaygroundSiteIsSelected({
 					}
 				}
 
-				dispatch(setActiveSite(requestedSiteSlug));
+				dispatch(setActiveSite(requestedSiteSlug, { redirect: false }));
 				return;
 			}
 

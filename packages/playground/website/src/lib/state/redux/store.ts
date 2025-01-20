@@ -76,7 +76,14 @@ export const selectActiveSiteError = (
 
 export const useActiveSite = () => useAppSelector(selectActiveSite);
 
-export const setActiveSite = (slug: string | undefined) => {
+export const setActiveSite = (
+	slug: string | undefined,
+	{
+		redirect = true,
+	}: {
+		redirect?: boolean;
+	} = {}
+) => {
 	return (
 		dispatch: PlaygroundDispatch,
 		getState: () => PlaygroundReduxState
@@ -87,7 +94,7 @@ export const setActiveSite = (slug: string | undefined) => {
 			return;
 		}
 		dispatch(__internal_uiSlice.actions.setActiveSite(slug));
-		if (slug) {
+		if (slug && redirect) {
 			const site = selectSiteBySlug(getState(), slug);
 			redirectTo(PlaygroundRoute.site(site));
 		}

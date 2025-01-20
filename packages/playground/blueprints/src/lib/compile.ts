@@ -323,18 +323,6 @@ export function compileBlueprint(
 					}
 				}
 			} finally {
-				try {
-					await (playground as any).goTo(
-						blueprint.landingPage || '/'
-					);
-				} catch (e) {
-					/*
-					 * PHP exposes no goTo method.
-					 * We can't use `goto` in playground here,
-					 * because it may be a Comlink proxy object
-					 * with no such method.
-					 */
-				}
 				progress.finish();
 			}
 		},

@@ -8,7 +8,10 @@ import {
 	useAppDispatch,
 	useAppSelector,
 } from '../../lib/state/redux/store';
-import { removeClientInfo } from '../../lib/state/redux/slice-clients';
+import {
+	removeClientInfo,
+	selectClientBySiteSlug,
+} from '../../lib/state/redux/slice-clients';
 import { bootSiteClient } from '../../lib/state/redux/boot-site-client';
 import { SiteError } from '../../lib/state/redux/slice-ui';
 import { Button, Spinner } from '@wordpress/components';
@@ -200,6 +203,34 @@ export const JustViewport = function JustViewport({
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [siteSlug, iframeRef, runtimeConfigString]);
+
+	const client = useAppSelector((state) =>
+		selectClientBySiteSlug(state, siteSlug)
+	);
+	useEffect(() => {
+		if (!client) {
+			return;
+		}
+		const url = new URL(window.location.href);
+		const landingPage =
+			url.searchParams.get('url') ||
+			site.metadata?.originalBlueprint?.landingPage ||
+			'/';
+		client.goTo(landingPage).catch((e) => {
+			/*
+			 * PHP exposes no goTo method.
+			 * We can't use `goto` in playground here,
+			 * because it may be a Comlink proxy object
+			 * with no such method.
+			 */
+		});
+		if (site.metadata.storage !== 'none') {
+			url.searchParams.delete('url');
+			redirectTo(url.toString());
+		}
+		// Only ever re-run this effect once – when the client becomes available.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [!client]);
 
 	const error = useAppSelector(selectActiveSiteError);
 
