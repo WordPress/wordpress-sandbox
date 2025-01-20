@@ -1,0 +1,22 @@
+# For documentation on verdaccio's configuration, see https://verdaccio.org/docs/configuration
+
+# All verdaccio data is stored here.
+# Do `npm run local-registry:clear` to delete all data.
+storage: ./tmp/verdaccio
+
+# Disable registration.
+max_users: -1
+
+# php-wasm assets can be large.
+max_body_size: 256mb
+
+# Fetch packages not found locally from npmjs.com.
+uplinks:
+    npmjs:
+        url: https://registry.npmjs.org/
+
+# All operations are available on all packages without authentication.
+packages:
+    '**':
+        access: $all
+        publish: $all

@@ -15,4 +15,12 @@ for file in $STAGED_FILES; do
     fi
 done
 
+# Prevent commiting .npmrc with the registry set to local.
+HAS_LOCAL_REGISTRY=$(git diff --cached --name-only .npmrc | xargs grep -n "registry=http://localhost:4873/")
+if [ -n "${HAS_LOCAL_REGISTRY}" ]; then
+	echo "The commit was rejected due to attempting to commit .npmrc with the registry set to the local registry."
+	echo "Please undo that change to .npmrc."
+	exit 1
+fi
+
 exit 0

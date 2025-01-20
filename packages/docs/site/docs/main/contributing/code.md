@@ -80,3 +80,82 @@ If you're using VS Code and have Chrome installed, you can debug Playground in t
 ### Debugging PHP
 
 Playground logs PHP errors in the browser console after every PHP request.
+
+## Publishing packages
+
+Playground consists of a number of packages, some of which are published to npmjs.com, under the `@wp-playground/` _organization_. While packages are normally automatically published through a [GitHub Action](https://github.com/WordPress/wordpress-playground/actions/workflows/publish-npm-packages.yml), it's also possible to do so from a local machine by running the same script that the GitHub Action runs.
+
+Additionally, it's possible to test-publish packages to a local registry, so that changes can be tested without publishing the package to npmjs.com.
+
+The release process is automated through [lerna](https://lerna.js.org).
+
+### Versioning strategy
+
+Playground's versioning strategy is to use the same version for all packages, **but** only packages that need to be released are bumped to the new version. As an example, lets consider the following scenario:
+
+-   All packages are currently at `v1.0.0`
+-   The following packages have changes since `v1.0.0`: `@wp-playground/cli` and `@wp-playground/remote`
+
+When we issue a new release, only `@wp-playground/cli` and `@wp-playground/remote` will be bumped to `v1.0.1`, and all other packages will remain at `v1.0.0`.
+
+### Authenticating with npmjs.com
+
+TODO
+
+### Issuing a new release
+
+Normally, packages are automatically published through a [GitHub Action](https://github.com/WordPress/wordpress-playground/actions/workflows/publish-npm-packages.yml), but if you so wish, you can release from your machine as well.
+
+The release process is automated through [lerna](https://lerna.js.org), which automatically figures out which packages need to be released, and what the new version should be. To issue a new release, you call `lerna` through the following script:
+
+> Please note that the following command **will publish packages to npmjs.com** (provided that you are authenticated with an account that has permissions to do so).
+
+```shell
+npm run release
+```
+
+### Publishing to a local registry
+
+Instead of publishing to npmjs.com, you can publish packages to a local registry that is running in your machine. This local registry is provided by [verdaccio](https://verdaccio.org). The sections below describe how to do this.
+
+### Enabling the local registry
+
+Start the local registry with:
+
+```shell
+npm run local-registry:start
+```
+
+> You should now be able to access the local registry's UI at [http://localhost:4873](http://localhost:4873)
+
+To switch the target registry of `npm` so that it uses the local registry instead of npmjs.com, you can use the following command:
+
+```shell
+npm run local-registry:enable
+```
+
+### Releasing to the local registry
+
+At this point, the local registry is running and all `npm` commands will target it, so you can publish packages as you normally would, but they will be published to the local registry instead:
+
+```shell
+# Note that we're using `release:no-push` instead of `release` because we don't
+# want commits or tags to be created, as we're just test-publishing.
+npm run release:no-push
+```
+
+Once the above command has ran, packages have been published to the local registry, and should be visible (and downloadable) from the local registry's UI at [http://localhost:4873](http://localhost:4873).
+
+### Disabling the local registry
+
+To disable the local registry, and make `npm` talk to npmjs.com again, you can:
+
+```shell
+npm run local-registry:disable
+```
+
+To clear all data of the local registry (useful if, for example, you have test-published a package and want to test-publish it again), you can use the following:
+
+```shell
+npm run local-registry:clear
+```
