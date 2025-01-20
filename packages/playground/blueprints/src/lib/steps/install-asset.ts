@@ -35,7 +35,7 @@ export async function installAsset(
 		targetPath,
 		zipFile,
 		ifAlreadyInstalled = 'overwrite',
-		targetFolderName = ''
+		targetFolderName = '',
 	}: InstallAssetOptions
 ): Promise<{
 	assetFolderPath: string;
@@ -43,7 +43,15 @@ export async function installAsset(
 }> {
 	// Extract to temporary folder so we can find asset folder name
 	const zipFileName = zipFile.name;
-	const assetNameGuess = zipFileName.replace(/\.zip$/, '');
+	let assetNameGuess = zipFileName.replace(/\.zip$/, '');
+	/**
+	 * Some resource types like GitDirectoryReference and UrlReference
+	 * don't have a name, so we need to generate a random name to ensure
+	 * the asset folder name exists.
+	 */
+	if (!zipFileName) {
+		assetNameGuess = `${randomString(32, '')}`;
+	}
 
 	const wpContent = joinPaths(await playground.documentRoot, 'wp-content');
 	const tmpDir = joinPaths(wpContent, randomString());
@@ -88,7 +96,7 @@ export async function installAsset(
 		}
 
 		// If a specific slug was requested be used, use that.
-		if ( targetFolderName && targetFolderName.length ) {
+		if (targetFolderName && targetFolderName.length) {
 			assetFolderName = targetFolderName;
 		}
 

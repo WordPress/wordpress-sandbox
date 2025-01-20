@@ -67,6 +67,9 @@ export const activatePlugin: StepHandler<ActivatePluginStep> = async (
 				die( $response->get_error_message() );
 			} else if ( false === $response ) {
 				die( "The activatePlugin step wasn't able to find the plugin $plugin_path." );
+			} else if ( $response === null ) {
+			 	// When the response is null, the plugin was successfully activated
+				die( 'true' );
 			}
 		`,
 		env: {
@@ -75,6 +78,12 @@ export const activatePlugin: StepHandler<ActivatePluginStep> = async (
 		},
 	});
 	if (activatePluginResult.text) {
+		/**
+		 * If the plugin was successfully activated, we can return early.
+		 */
+		if (activatePluginResult.text === 'true') {
+			return;
+		}
 		logger.warn(
 			`Plugin ${pluginPath} activation printed the following bytes: ${activatePluginResult.text}`
 		);
