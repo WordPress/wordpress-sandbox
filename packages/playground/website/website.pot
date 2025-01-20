@@ -1,0 +1,28 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+
+#: packages/playground/website/src/components/site-manager/sidebar/index.tsx:70
+msgid "Documentation"
+msgstr ""
+
+#: packages/playground/website/src/components/site-manager/sidebar/index.tsx:74
+msgid "GitHub"
+msgstr ""
+
+#. translators: Different ways to import code or content into Playground
+#: packages/playground/website/src/components/site-manager/sidebar/index.tsx:112
+msgid "Import actions"
+msgstr ""
+
+#: packages/playground/website/src/components/site-manager/sidebar/index.tsx:66
+msgid "More demos"
+msgstr ""
+
+#: packages/playground/website/src/components/layout/index.tsx:94
+msgid "Open site"
+msgstr ""
+
+#: packages/playground/website/src/components/site-manager/sidebar/index.tsx:62
+msgid "Preview WordPress PR"
+msgstr ""

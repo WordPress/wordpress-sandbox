@@ -35,6 +35,7 @@ import {
 import { ImportFormModal } from '../import-form-modal';
 import { PreviewPRModal } from '../../github/preview-pr';
 import { MissingSiteModal } from '../missing-site-modal';
+import { __ } from '../../lib/i18n';
 
 acquireOAuthTokenIfNeeded();
 
@@ -90,7 +91,7 @@ export function Layout() {
 			<div className={css.siteView}>
 				{siteManagerIsOpen && (
 					<div
-						title="Open site"
+						title={__('Open site')}
 						className={css.siteViewOverlay}
 						onClick={() => {
 							dispatch(setSiteManagerOpen(false));

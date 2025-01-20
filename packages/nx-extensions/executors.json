@@ -20,6 +20,11 @@
 			"implementation": "./src/executors/assert-built-esm-and-cjs/executor",
 			"schema": "./src/executors/assert-built-esm-and-cjs/schema.json",
 			"description": "assert-built-esm-and-cjs executor"
+		},
+		"wordpress-i18n-gettext-extractor": {
+			"implementation": "./src/executors/wordpress-i18n-gettext-extractor/executor",
+			"schema": "./src/executors/wordpress-i18n-gettext-extractor/schema.json",
+			"description": "wordpress-i18n-gettext-extractor executor"
 		}
 	}
 }

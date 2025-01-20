@@ -116,6 +116,16 @@
 				]
 			}
 		},
+		"extract-i18n-strings": {
+			"executor": "@wp-playground/nx-extensions:wordpress-i18n-gettext-extractor",
+			"options": {
+				"outputFile": "packages/playground/website/website.pot",
+				"scriptGlobs": [
+					"packages/playground/website/src/**/*.@(ts|js|tsx|jsx)"
+				],
+				"htmlGlobs": ["packages/playground/website/index.html"]
+			}
+		},
 		"e2e": {
 			"executor": "@nx/cypress:cypress",
 			"options": {

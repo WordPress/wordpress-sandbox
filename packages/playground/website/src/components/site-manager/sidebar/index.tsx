@@ -28,6 +28,7 @@ import {
 } from '../../../lib/state/redux/slice-sites';
 import { PlaygroundRoute, redirectTo } from '../../../lib/state/url/router';
 import { setSiteManagerSection } from '../../../lib/state/redux/slice-ui';
+import { __ } from '../../../lib/i18n';
 import { WordPressPRMenuItem } from '../../toolbar-buttons/wordpress-pr-menu-item';
 import { GutenbergPRMenuItem } from '../../toolbar-buttons/gutenberg-pr-menu-item';
 import { RestoreFromZipMenuItem } from '../../toolbar-buttons/restore-from-zip';
@@ -58,19 +59,19 @@ export function Sidebar({
 
 	const resources = [
 		{
-			label: 'Preview WordPress PR',
+			label: __('Preview WordPress PR'),
 			href: '/wordpress.html',
 		},
 		{
-			label: 'More demos',
+			label: __('More demos'),
 			href: '/demos/index.html',
 		},
 		{
-			label: 'Documentation',
+			label: __('Documentation'),
 			href: 'https://wordpress.github.io/wordpress-playground/',
 		},
 		{
-			label: 'GitHub',
+			label: __('GitHub'),
 			href: 'https://github.com/wordpress/wordpress-playground',
 		},
 	];
@@ -106,7 +107,10 @@ export function Sidebar({
 				<DropdownMenu
 					className={css.componentsDropdown}
 					icon={moreVertical}
-					label="Import actions"
+					label={
+						/* translators: Different ways to import code or content into Playground */
+						__('Import actions')
+					}
 					popoverProps={{
 						placement: 'bottom-end',
 					}}
@@ -126,7 +130,10 @@ export function Sidebar({
 								disabled={offline}
 							/>
 							<RestoreFromZipMenuItem
-								text="Import from .zip"
+								text={
+									// translators: Import code and content into Playground from a .zip file
+									__('Import from .zip')
+								}
 								onClose={onClose}
 								disabled={false}
 							/>
@@ -150,7 +157,9 @@ export function Sidebar({
 						isSelected={isTemporarySiteSelected}
 						// eslint-disable-next-line jsx-a11y/aria-role
 						role=""
-						title="This is a temporary Playground. Your changes will be lost on page refresh."
+						title={__(
+							'This is a temporary Playground. Your changes will be lost on page refresh.'
+						)}
 						{...(activeSite?.metadata.storage === 'none'
 							? {
 									'aria-current': 'page',
@@ -168,7 +177,7 @@ export function Sidebar({
 								<ClockIcon className={css.sidebarItemLogo} />
 							</Flex>
 							<FlexBlock className={css.sidebarItemSiteName}>
-								Temporary Playground
+								{__('Temporary Playground')}
 							</FlexBlock>
 						</HStack>
 					</MenuItem>
@@ -196,7 +205,10 @@ export function Sidebar({
 								/>
 							</Flex>
 							<FlexBlock className={css.sidebarItemSiteName}>
-								Blueprints Gallery
+								{
+									// translators: a gallery of WordPress Playground blueprint files
+									__('Blueprints Gallery')
+								}
 							</FlexBlock>
 						</HStack>
 					</MenuItem>

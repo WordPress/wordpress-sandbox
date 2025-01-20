@@ -1,0 +1,30 @@
+{
+	"$schema": "http://json-schema.org/schema",
+	"version": 2,
+	"title": "WordPress i18n gettext extractor",
+	"description": "",
+	"type": "object",
+	"properties": {
+		"scriptGlobs": {
+			"type": "array",
+			"description": "Globs for scripts to parse for gettext functions",
+			"items": {
+				"type": "string"
+			},
+			"defaultConfiguration": []
+		},
+		"htmlGlobs": {
+			"type": "array",
+			"description": "Globs for HTML documents to parse for gettext functions",
+			"items": {
+				"type": "string"
+			},
+			"defaultConfiguration": []
+		},
+		"outputFile": {
+			"type": "string",
+			"description": "The path to the resulting .pot file"
+		}
+	},
+	"required": ["outputFile"]
+}
