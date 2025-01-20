@@ -87,7 +87,7 @@ function Authenticate({
 		[css.disabled]: mayLoseProgress && !exported,
 	});
 	return (
-		<div>
+		<div className="typography">
 			<p>
 				Importing plugins, themes, and wp-content directories directly
 				from your public GitHub repositories.

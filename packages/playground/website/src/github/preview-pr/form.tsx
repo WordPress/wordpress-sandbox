@@ -221,12 +221,13 @@ export default function PreviewPRForm({
 					disabled={submitting}
 					label="Pull request number or URL"
 					value={value}
+					autoFocus
 					onChange={(e) => {
 						setError('');
 						setValue(e);
 					}}
 				/>
-				{errorMsg && <div>{errorMsg}</div>}
+				{errorMsg && <div className={css.error}>{errorMsg}</div>}
 			</div>
 			<ModalButtons
 				areDisabled={submitting}

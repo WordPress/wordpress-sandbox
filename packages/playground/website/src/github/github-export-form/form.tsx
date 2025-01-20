@@ -432,7 +432,11 @@ export default function GitHubExportForm({
 
 	if (pushResult) {
 		return (
-			<form id="export-playground-form" onSubmit={handleSubmit}>
+			<form
+				id="export-playground-form"
+				onSubmit={handleSubmit}
+				className="typography"
+			>
 				<h2>
 					Pull Request{' '}
 					{formValues.prAction === 'create' ? 'created' : 'updated'}!

@@ -175,7 +175,11 @@ export default function GitHubImportForm({
 
 	return (
 		<GitHubOAuthGuard>
-			<form id="import-playground-form" onSubmit={handleSubmit}>
+			<form
+				id="import-playground-form"
+				onSubmit={handleSubmit}
+				className="typography"
+			>
 				<p>
 					You may import WordPress plugins, themes, and entire
 					wp-content directories from any public GitHub repository.
